@@ -1,0 +1,14 @@
+{
+  "name": "elarion-landing",
+  "version": "1.0.0",
+  "description": "ELARION — A Strategic Fantasy Board Game Landing Page",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve . -p 3000",
+    "dev": "npx serve . -p 3000 --no-clipboard",
+    "deploy": "vercel --prod"
+  },
+  "keywords": ["elarion", "board-game", "fantasy", "landing-page"],
+  "author": "Elarion Games Studio",
+  "license": "UNLICENSED"
+}

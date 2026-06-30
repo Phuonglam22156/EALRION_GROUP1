@@ -1,0 +1,23 @@
+[
+  {
+    "id": "rev-1",
+    "username": "baonam99",
+    "rating": 5,
+    "comment": "Trò chơi siêu đẹp! Các tượng mini chi tiết và bản đồ in rất sắc nét. Cách chơi dễ hiểu hơn mình nghĩ nhiều, nhóm bạn mình chơi thử 3 ván liền không chán.",
+    "date": "2026-06-01T12:00:00.000Z"
+  },
+  {
+    "id": "rev-2",
+    "username": "linh_khanh",
+    "rating": 5,
+    "comment": "Cốt truyện vô cùng lôi cuốn, sáu tộc hệ có các kỹ năng độc đáo tạo nên tính chiến thuật cao. Hệ thống mana cân não, hết mana là loại ngay nên rất kịch tính.",
+    "date": "2026-06-03T15:30:00.000Z"
+  },
+  {
+    "id": "rev-3",
+    "username": "minhduc_boardgame",
+    "rating": 4,
+    "comment": "Game giao hàng nhanh, bọc cẩn thận. Bản đồ 51x51cm chơi rất thoải mái. Hy vọng tương lai shop sẽ ra mắt thêm các bản mở rộng hoặc các tộc hệ mới.",
+    "date": "2026-06-05T09:15:00.000Z"
+  }
+]

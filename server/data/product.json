@@ -1,0 +1,14 @@
+{
+  "id": "elarion-board-game",
+  "name": "ELARION: War of Six Elements",
+  "tagline": "Board Game Fantasy Chiến Thuật",
+  "price": 300000,
+  "originalPrice": 450000,
+  "stock": 50,
+  "lowStockThreshold": 5,
+  "difficulty": "Trung bình",
+  "players": "2–6 người",
+  "playTime": "45–90 phút",
+  "ages": "12+",
+  "description": "ELARION là board game fantasy chiến thuật lấy bối cảnh tại thế giới Elarion — nơi tồn tại sáu tộc hệ đại diện cho các sức mạnh khác nhau. Một biến cố mang tên \"Đại Nứt Gãy\" xảy ra khiến nguồn mana bị thất lạc và sự cân bằng của Elarion dần sụp đổ. Nhập vai thành các chiến binh, sử dụng kỹ năng đặc trưng, chiến thuật và quản lý tài nguyên mana để chiến đấu và giành chiến thắng."
+}
