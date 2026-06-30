@@ -12,6 +12,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <!-- Animation Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/CustomEase.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
@@ -21,13 +27,63 @@
   <!-- CUSTOM CURSOR -->
   <div id="cursor-outer"></div>
   <div id="cursor-inner"></div>
+  <canvas id="cursor-trail-canvas" aria-hidden="true"></canvas>
+  <div id="cursor-ripple-container" aria-hidden="true"></div>
+
+  <!-- GLOBAL FOG LAYERS -->
+  <div class="global-fog" aria-hidden="true">
+    <div class="fog-layer fog-1"></div>
+    <div class="fog-layer fog-2"></div>
+    <div class="fog-layer fog-3"></div>
+  </div>
+
+  <!-- MUSIC CONTROLS -->
+  <div class="music-controls" id="music-controls">
+    <button id="mute-btn" class="mute-btn" aria-label="Mute music" title="Mute / Unmute">🔊</button>
+  </div>
 
   <!-- LOADING SCREEN -->
   <div id="loading-screen">
+    <div class="loading-bg-stars" aria-hidden="true"></div>
+    <div class="loading-aurora" aria-hidden="true"></div>
+    <canvas id="loading-rune-canvas" class="loading-rune" aria-hidden="true"></canvas>
     <div class="loading-logo">
-      <img src="images/logo.png" alt="ELARION Logo" class="loading-logo-img" />
+      <div class="loading-logo-wrap">
+        <div id="loading-sword" class="loading-sword" aria-hidden="true">
+          <svg viewBox="0 0 40 120" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="120">
+            <rect x="18" y="0" width="4" height="90" rx="2" fill="url(#swordGrad)"/>
+            <rect x="5" y="72" width="30" height="5" rx="2.5" fill="url(#guardGrad)"/>
+            <ellipse cx="20" cy="80" rx="4" ry="6" fill="url(#crystalGrad)"/>
+            <rect x="18.5" y="86" width="3" height="22" rx="1.5" fill="#6b7280"/>
+            <defs>
+              <linearGradient id="swordGrad" x1="20" y1="0" x2="20" y2="90" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#e2e8f0"/>
+                <stop offset="50%" stop-color="#94a3b8"/>
+                <stop offset="100%" stop-color="#475569"/>
+              </linearGradient>
+              <linearGradient id="guardGrad" x1="5" y1="74" x2="35" y2="74" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#b8860b"/>
+                <stop offset="50%" stop-color="#ffd700"/>
+                <stop offset="100%" stop-color="#b8860b"/>
+              </linearGradient>
+              <radialGradient id="crystalGrad" cx="50%" cy="40%">
+                <stop offset="0%" stop-color="#60a5fa"/>
+                <stop offset="100%" stop-color="#1d4ed8"/>
+              </radialGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="loading-crystal-glow" aria-hidden="true"></div>
+        <div class="loading-energy-ring loading-energy-ring-1" aria-hidden="true"></div>
+        <div class="loading-energy-ring loading-energy-ring-2" aria-hidden="true"></div>
+        <div class="loading-energy-ring loading-energy-ring-3" aria-hidden="true"></div>
+        <div class="loading-sweep" aria-hidden="true"></div>
+        <img src="images/logo.png" alt="ELARION Logo" class="loading-logo-img" />
+      </div>
+      <div class="loading-percent" id="loading-percent">0%</div>
       <div class="loading-bar-wrap"><div class="loading-bar-fill" id="loading-fill"></div></div>
       <div class="loading-text" id="loading-text">Entering the realm...</div>
+      <div class="loading-particles" aria-hidden="true"></div>
     </div>
   </div>
 
@@ -41,9 +97,11 @@
         <li><a href="#world" class="nav-link">World</a></li>
         <li><a href="#story" class="nav-link">Story</a></li>
         <li><a href="#gameplay" class="nav-link">Gameplay</a></li>
+        <li><a href="#factions" class="nav-link">Factions</a></li>
         <li><a href="#characters" class="nav-link">Heroes</a></li>
         <li><a href="#gallery" class="nav-link">Gallery</a></li>
         <li><a href="#pricing" class="nav-link">Pre-Order</a></li>
+        <li><a href="#contact" class="nav-link">Contact</a></li>
       </ul>
       <a href="#pricing" class="nav-cta" id="nav-cta-btn">Pre-Order Now</a>
       <button class="nav-hamburger" id="hamburger-btn" aria-label="Toggle navigation" aria-expanded="false">
@@ -60,7 +118,14 @@
       <div class="hero-fog"></div>
     </div>
 
-    <!-- Floating particles -->
+    <!-- Three.js WebGL particle canvas -->
+    <canvas id="hero-magic-canvas" class="hero-magic-canvas" aria-hidden="true"></canvas>
+
+    <!-- Aurora effects -->
+    <div class="aurora-layer aurora-1" aria-hidden="true"></div>
+    <div class="aurora-layer aurora-2" aria-hidden="true"></div>
+
+
     <div class="particles-container" id="particles-container" aria-hidden="true"></div>
 
     <!-- Magical light orbs -->
@@ -69,49 +134,16 @@
     <div class="light-orb orb-3" aria-hidden="true"></div>
 
     <div class="hero-content">
-      <div class="hero-badge fade-up">
-        <span class="badge-rune">✦</span>
-        <span>Coming to Kickstarter 2025</span>
-        <span class="badge-rune">✦</span>
-      </div>
-      <h1 class="hero-title fade-up delay-1" id="hero-title">
+      <h1 class="hero-title" id="hero-title">
         <img src="images/logo.png" alt="ELARION — War of Six Elements" class="hero-logo-img" />
       </h1>
-      <p class="hero-subtitle fade-up delay-2">A Strategic Fantasy Board Game</p>
-      <p class="hero-desc fade-up delay-3">
-        Chiến đấu, khám phá và xây dựng vương quốc của riêng bạn<br />trong thế giới Elarion huyền bí.
-      </p>
-      <div class="hero-actions fade-up delay-4">
-        <a href="#pricing" class="btn-primary" id="hero-preorder-btn">
-          <span class="btn-glow"></span>
-          <span class="btn-icon">⚔</span>
-          Pre-Order Now
-        </a>
-        <a href="#world" class="btn-secondary" id="hero-learn-btn">
-          <span>Learn More</span>
-          <span class="btn-arrow">↓</span>
-        </a>
-      </div>
-      <div class="hero-stats fade-up delay-5">
-        <div class="stat-item">
-          <span class="stat-number">2–6</span>
-          <span class="stat-label">Players</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-number">90+</span>
-          <span class="stat-label">Minutes</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-number">14+</span>
-          <span class="stat-label">Age</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-number">200+</span>
-          <span class="stat-label">Components</span>
-        </div>
+      <!-- Keep music button hidden or visually clean if needed, but remove other elements -->
+      <div class="hero-music-entry" style="opacity: 0; pointer-events: none; height: 0; margin: 0; overflow: hidden;">
+        <button id="enter-world-btn" class="btn-enter-world" aria-label="Enter World and play music">
+          <span class="enter-world-glow"></span>
+          <span class="enter-world-icon">🎵</span>
+          <span>Enter the World</span>
+        </button>
       </div>
     </div>
 
@@ -369,6 +401,170 @@
           <div class="gameplay-tag">Victory</div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- =================== FACTIONS SECTION =================== -->
+  <section id="factions" class="section factions-section" aria-label="Six Factions of Elarion">
+    <div class="factions-bg-glow" aria-hidden="true"></div>
+    <div class="container">
+      <div class="section-header anim-fade-up">
+        <span class="section-tag">✦ Choose Your Faction ✦</span>
+        <h2 class="section-title">Six Elemental Factions</h2>
+        <p class="section-subtitle">Each faction commands a primal force — master your element and conquer the realm</p>
+      </div>
+
+      <div class="factions-grid anim-stagger-grid">
+
+        <!-- Fire Faction -->
+        <div class="faction-card anim-stagger-item" id="faction-fire" data-element="fire">
+          <div class="card-glass-highlight"></div>
+          <div class="faction-canvas-wrap">
+            <canvas class="faction-element-canvas" width="120" height="120"></canvas>
+          </div>
+          <div class="faction-glow faction-glow-fire"></div>
+          <div class="faction-content">
+            <div class="faction-emblem">🔥</div>
+            <h3 class="faction-name">Ignis Brotherhood</h3>
+            <p class="faction-element-label">Element of Fire</p>
+            <p class="faction-desc">Berserkers and pyromancers who wield devastating flame magic. High offense, low defense — destroy everything in your path.</p>
+            <div class="faction-traits">
+              <span class="faction-trait trait-fire">Aggression</span>
+              <span class="faction-trait trait-fire">Burn</span>
+              <span class="faction-trait trait-fire">Warlord</span>
+            </div>
+            <div class="faction-power">
+              <span>Power</span>
+              <div class="power-bar"><div class="power-fill" style="width:95%;--pfill:#ef4444"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Water Faction -->
+        <div class="faction-card anim-stagger-item" id="faction-water" data-element="water">
+          <div class="card-glass-highlight"></div>
+          <div class="faction-canvas-wrap">
+            <canvas class="faction-element-canvas" width="120" height="120"></canvas>
+          </div>
+          <div class="faction-glow faction-glow-water"></div>
+          <div class="faction-content">
+            <div class="faction-emblem">🌊</div>
+            <h3 class="faction-name">Aquan Covenant</h3>
+            <p class="faction-element-label">Element of Water</p>
+            <p class="faction-desc">Fluid tacticians who adapt and heal. Masters of control magic, turning enemy strengths into weaknesses.</p>
+            <div class="faction-traits">
+              <span class="faction-trait trait-water">Adaptable</span>
+              <span class="faction-trait trait-water">Healing</span>
+              <span class="faction-trait trait-water">Control</span>
+            </div>
+            <div class="faction-power">
+              <span>Power</span>
+              <div class="power-bar"><div class="power-fill" style="width:80%;--pfill:#3b82f6"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Time Faction -->
+        <div class="faction-card anim-stagger-item" id="faction-time" data-element="time">
+          <div class="card-glass-highlight"></div>
+          <div class="faction-canvas-wrap">
+            <canvas class="faction-element-canvas" width="120" height="120"></canvas>
+          </div>
+          <div class="faction-glow faction-glow-time"></div>
+          <div class="faction-content">
+            <div class="faction-emblem">⏳</div>
+            <h3 class="faction-name">Chrono Order</h3>
+            <p class="faction-element-label">Element of Time</p>
+            <p class="faction-desc">Temporal sorcerers who rewind, accelerate and freeze time itself. The most strategic faction in the game.</p>
+            <div class="faction-traits">
+              <span class="faction-trait trait-time">Time Warp</span>
+              <span class="faction-trait trait-time">Foresight</span>
+              <span class="faction-trait trait-time">Rewind</span>
+            </div>
+            <div class="faction-power">
+              <span>Power</span>
+              <div class="power-bar"><div class="power-fill" style="width:88%;--pfill:#a855f7"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dream Faction -->
+        <div class="faction-card anim-stagger-item" id="faction-dream" data-element="dream">
+          <div class="card-glass-highlight"></div>
+          <div class="faction-canvas-wrap">
+            <canvas class="faction-element-canvas" width="120" height="120"></canvas>
+          </div>
+          <div class="faction-glow faction-glow-dream"></div>
+          <div class="faction-content">
+            <div class="faction-emblem">✨</div>
+            <h3 class="faction-name">Somnian Veil</h3>
+            <p class="faction-element-label">Element of Dream</p>
+            <p class="faction-desc">Illusionists and dreamweavers who confound enemies with hallucinations. Masters of deception and espionage.</p>
+            <div class="faction-traits">
+              <span class="faction-trait trait-dream">Illusion</span>
+              <span class="faction-trait trait-dream">Stealth</span>
+              <span class="faction-trait trait-dream">Mindscape</span>
+            </div>
+            <div class="faction-power">
+              <span>Power</span>
+              <div class="power-bar"><div class="power-fill" style="width:75%;--pfill:#ec4899"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Guardian Faction -->
+        <div class="faction-card anim-stagger-item" id="faction-guardian" data-element="guardian">
+          <div class="card-glass-highlight"></div>
+          <div class="faction-canvas-wrap">
+            <canvas class="faction-element-canvas" width="120" height="120"></canvas>
+          </div>
+          <div class="faction-glow faction-glow-guardian"></div>
+          <div class="faction-content">
+            <div class="faction-emblem">🌿</div>
+            <h3 class="faction-name">Verdant Wardens</h3>
+            <p class="faction-element-label">Element of Nature</p>
+            <p class="faction-desc">Ancient protectors of the forest who summon powerful beasts and grow living fortresses. Unbreakable defenders.</p>
+            <div class="faction-traits">
+              <span class="faction-trait trait-guardian">Summoning</span>
+              <span class="faction-trait trait-guardian">Defense</span>
+              <span class="faction-trait trait-guardian">Growth</span>
+            </div>
+            <div class="faction-power">
+              <span>Power</span>
+              <div class="power-bar"><div class="power-fill" style="width:82%;--pfill:#22c55e"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Thunder Faction -->
+        <div class="faction-card anim-stagger-item" id="faction-thunder" data-element="thunder">
+          <div class="card-glass-highlight"></div>
+          <div class="faction-canvas-wrap">
+            <canvas class="faction-element-canvas" width="120" height="120"></canvas>
+          </div>
+          <div class="faction-glow faction-glow-thunder"></div>
+          <div class="faction-content">
+            <div class="faction-emblem">⚡</div>
+            <h3 class="faction-name">Storm Conclave</h3>
+            <p class="faction-element-label">Element of Thunder</p>
+            <p class="faction-desc">Lightning-wielding shock troopers who strike fast and hard. Masters of AOE damage and battlefield disruption.</p>
+            <div class="faction-traits">
+              <span class="faction-trait trait-thunder">Lightning</span>
+              <span class="faction-trait trait-thunder">Speed</span>
+              <span class="faction-trait trait-thunder">AOE Blast</span>
+            </div>
+            <div class="faction-power">
+              <span>Power</span>
+              <div class="power-bar"><div class="power-fill" style="width:92%;--pfill:#eab308"></div></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="section-fog-transition" aria-hidden="true">
+      <div class="fog-particle"></div><div class="fog-particle"></div><div class="fog-particle"></div>
+      <div class="fog-particle"></div><div class="fog-particle"></div><div class="fog-particle"></div>
     </div>
   </section>
 
@@ -1184,8 +1380,185 @@
     </div>
   </section>
 
+  <!-- =================== CONTACT SECTION =================== -->
+  <section id="contact" class="section contact-section" aria-label="Contact Elarion">
+    <!-- Magic portal background -->
+    <div class="contact-portal" id="contact-portal" aria-hidden="true">
+      <div class="portal-ring portal-ring-outer"></div>
+      <div class="portal-ring portal-ring-mid"></div>
+      <div class="portal-ring portal-ring-inner"></div>
+      <div class="portal-beam portal-beam-1"></div>
+      <div class="portal-beam portal-beam-2"></div>
+      <div class="portal-beam portal-beam-3"></div>
+      <div class="portal-core"></div>
+    </div>
+    <!-- Floating particles -->
+    <div class="contact-particles" aria-hidden="true">
+      <div class="contact-particle cp-1"></div>
+      <div class="contact-particle cp-2"></div>
+      <div class="contact-particle cp-3"></div>
+      <div class="contact-particle cp-4"></div>
+      <div class="contact-particle cp-5"></div>
+      <div class="contact-particle cp-6"></div>
+      <div class="contact-particle cp-7"></div>
+      <div class="contact-particle cp-8"></div>
+    </div>
+
+    <div class="container contact-container">
+      <div class="section-header anim-fade-up">
+        <span class="section-tag">✦ Reach Us ✦</span>
+        <h2 class="section-title">Enter the Council Chamber</h2>
+        <p class="section-subtitle">Send a raven, open a portal, or simply write to us — we answer every call</p>
+      </div>
+
+      <div class="contact-grid">
+        <!-- Left: Info + Social -->
+        <div class="contact-info-col anim-slide-left">
+          <!-- Info cards -->
+          <div class="contact-info-card">
+            <div class="contact-info-icon">📍</div>
+            <div>
+              <h4>Studio Location</h4>
+              <p>Ho Chi Minh City, Vietnam<br>The Realm of Elarion</p>
+            </div>
+          </div>
+          <div class="contact-info-card">
+            <div class="contact-info-icon">✉️</div>
+            <div>
+              <h4>Email the Council</h4>
+              <p>hello@elarion.id.vn<br>support@elarion.id.vn</p>
+            </div>
+          </div>
+          <div class="contact-info-card">
+            <div class="contact-info-icon">⏱️</div>
+            <div>
+              <h4>Response Time</h4>
+              <p>Within 24 hours<br>Mon — Fri, 9:00 — 18:00 ICT</p>
+            </div>
+          </div>
+
+          <!-- Social links -->
+          <div class="contact-social-section">
+            <h4 class="contact-social-title">Join the Community</h4>
+            <div class="contact-social-grid">
+              <a href="#" class="contact-social-btn csb-discord" aria-label="Join Discord">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994.076.142-.041-.106-.041-.106a13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/></svg>
+                <span>Discord</span>
+              </a>
+              <a href="#" class="contact-social-btn csb-facebook" aria-label="Facebook">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+                <span>Facebook</span>
+              </a>
+              <a href="#" class="contact-social-btn csb-instagram" aria-label="Instagram">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                <span>Instagram</span>
+              </a>
+              <a href="#" class="contact-social-btn csb-youtube" aria-label="YouTube">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M22.54 6.42a2.78 2.78 0 00-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 001.46 6.42 29 29 0 001 11.75a29 29 0 00.46 5.33A2.78 2.78 0 003.41 19.1C5.12 19.56 12 19.56 12 19.56s6.88 0 8.59-.46a2.78 2.78 0 001.95-1.95 29 29 0 00.46-5.33 29 29 0 00-.46-5.34z"/><polygon points="9.75,15.02 15.5,11.75 9.75,8.48 9.75,15.02" fill="#09090B"/></svg>
+                <span>YouTube</span>
+              </a>
+              <a href="#" class="contact-social-btn csb-kickstarter" aria-label="Kickstarter">
+                <span style="font-size:1.3rem;">🚀</span>
+                <span>Kickstarter</span>
+              </a>
+              <a href="#" class="contact-social-btn csb-bgg" aria-label="BoardGameGeek">
+                <span style="font-size:1.3rem;">🎲</span>
+                <span>BoardGameGeek</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Contact Form -->
+        <div class="contact-form-col anim-slide-right">
+          <div class="contact-form-card">
+            <div class="contact-form-glow-border" aria-hidden="true"></div>
+            <div class="contact-form-runes" aria-hidden="true">
+              <span class="form-rune fr-1">✦</span>
+              <span class="form-rune fr-2">⚔</span>
+              <span class="form-rune fr-3">✦</span>
+            </div>
+            <h3 class="contact-form-title">Send a Message</h3>
+            <form id="contact-form" class="contact-form" novalidate>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="contact-name">Your Name</label>
+                  <div class="form-input-wrap">
+                    <input type="text" id="contact-name" name="name" placeholder="Adventurer's name..." required />
+                    <div class="form-input-glow"></div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="contact-email">Email Address</label>
+                  <div class="form-input-wrap">
+                    <input type="email" id="contact-email" name="email" placeholder="your@realm.com" required />
+                    <div class="form-input-glow"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="contact-subject">Subject</label>
+                <div class="form-input-wrap">
+                  <select id="contact-subject" name="subject">
+                    <option value="">Choose your quest...</option>
+                    <option>Pre-Order Inquiry</option>
+                    <option>Press & Media</option>
+                    <option>Shipping & Delivery</option>
+                    <option>Rules & Gameplay</option>
+                    <option>Partnership</option>
+                    <option>General Question</option>
+                  </select>
+                  <div class="form-input-glow"></div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="contact-message">Your Message</label>
+                <div class="form-input-wrap">
+                  <textarea id="contact-message" name="message" rows="4" placeholder="Share your tale with the Council of Elarion..." required></textarea>
+                  <div class="form-input-glow"></div>
+                </div>
+              </div>
+              <div class="form-newsletter-opt">
+                <label class="form-checkbox-label">
+                  <input type="checkbox" id="newsletter-opt" name="newsletter" />
+                  <span class="form-checkbox-custom"></span>
+                  <span>Also subscribe to ELARION updates & exclusive content</span>
+                </label>
+              </div>
+              <button type="submit" class="btn-contact-submit" id="contact-submit-btn">
+                <span class="btn-glow"></span>
+                <span class="contact-btn-icon">✉</span>
+                <span>Send to the Council</span>
+              </button>
+              <p class="contact-form-status" id="contact-form-status" role="status"></p>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Newsletter Banner -->
+      <div class="contact-newsletter-banner anim-fade-up">
+        <div class="cnb-icon" aria-hidden="true">📜</div>
+        <div class="cnb-content">
+          <h4>Join the Sacred Scroll</h4>
+          <p>Get exclusive ELARION lore drops, early access reveals, and Kickstarter alerts</p>
+        </div>
+        <form class="cnb-form" onsubmit="handleNewsletter(event)">
+          <div class="cnb-input-wrap">
+            <input type="email" id="newsletter-email" placeholder="your@email.com" aria-label="Email for newsletter" required />
+            <button type="submit" id="newsletter-submit-btn" aria-label="Subscribe">
+              <span>Join Now →</span>
+            </button>
+          </div>
+          <p class="newsletter-note" id="newsletter-msg" role="status"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+
   <!-- =================== FOOTER =================== -->
   <footer id="footer" class="footer" role="contentinfo">
+
     <div class="footer-top">
       <div class="footer-glow" aria-hidden="true"></div>
       <div class="container">
@@ -1266,6 +1639,10 @@
     </div>
 
     <div class="footer-bottom">
+      <canvas id="footer-constellation" class="footer-constellation-canvas" aria-hidden="true"></canvas>
+      <div class="footer-rune-wrap" aria-hidden="true">
+        <div id="footer-rune" class="footer-rune">✦</div>
+      </div>
       <div class="container">
         <div class="footer-bottom-inner">
           <p>© 2025 Elarion Games Studio. All rights reserved.</p>
@@ -1279,5 +1656,40 @@
   <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
   <script src="main.js"></script>
+  <script src="animations.js"></script>
+  <script>
+    // Contact form handler
+    document.getElementById('contact-form') && document.getElementById('contact-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('contact-submit-btn');
+      const status = document.getElementById('contact-form-status');
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳ Sending...</span>';
+      status.textContent = '';
+      setTimeout(() => {
+        status.textContent = '✓ Your message has been sent! The Council will respond within 24 hours.';
+        status.style.color = '#22c55e';
+        btn.innerHTML = '<span class="btn-glow"></span><span>✓ Sent!</span>';
+        btn.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+        document.getElementById('contact-form').reset();
+        setTimeout(() => { btn.disabled = false; btn.innerHTML = '<span class="btn-glow"></span><span class="contact-btn-icon">✉</span><span>Send to the Council</span>'; btn.style.background = ''; }, 5000);
+      }, 1500);
+    });
+
+    // Newsletter handler
+    function handleNewsletter(e) {
+      e.preventDefault();
+      const input = document.getElementById('newsletter-email');
+      const msg = document.getElementById('newsletter-msg');
+      if (!input || !input.value) return;
+      msg.textContent = '⏳ Inscribing your name on the Sacred Scroll...';
+      msg.style.color = '';
+      setTimeout(() => {
+        msg.textContent = '✓ You\'re on the Sacred Scroll! Welcome to Elarion.';
+        msg.style.color = '#22c55e';
+        input.value = '';
+      }, 1200);
+    }
+  </script>
 </body>
 </html>
